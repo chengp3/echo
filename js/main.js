@@ -65,7 +65,20 @@ $("#default-button").click(default_para);
 $("#screenshot-button").click(download_network);
 
 
-function download_network() {
+function download_network(e) {
+  var svgEl = document.getElementById("sim-svg");
+  svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  var svgData = svgEl.outerHTML;
+  var preface = '<?xml version="1.0" standalone="no"?>\r\n';
+  var svgBlob = new Blob([preface, svgData], {type:"image/svg+xml;charset=utf-8"});
+  var svgUrl = URL.createObjectURL(svgBlob);
+  var downloadLink = document.createElement("a");
+  downloadLink.href = svgUrl;
+  downloadLink.download = 'download.svg';
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+/*
   const graph = document.querySelector("#demo-graph-layout svg");
 
   const canvas = document.createElement("canvas");
@@ -94,6 +107,7 @@ function download_network() {
   downloadLink.href = dataURL;
   downloadLink.download = "image.png"; 
   downloadLink.click();
+  */
 }
 
 var interval = setInterval(run_Model, time_interval);
@@ -264,11 +278,13 @@ function update_network(t_node, t_link) {
 
   svgLinks = svg.selectAll("line.link").data(links, function(d) { return d.index;})
       .enter().append("line")
-      .attr("class", "link");
+      .attr("class", "link")
+      .attr('style', "stroke: #333; stroke-opacity: .2; stroke-width: 1px;");
 
   svgNodes = svg.selectAll("circle.node").data(nodes, function(d) { return d.index;})
       .enter().append("circle")
       .attr("class", "node")
+      .attr('style', "stroke-width:1px;stroke:#000")
       .attr("r", function(d) { return 4 * Math.sqrt(d.k); })
       .style("fill", function(d) { return colors(d.opinion); })
       // .on("mouseover", function(d) {
