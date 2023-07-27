@@ -7,6 +7,8 @@ var height = document.getElementById("demo-graph-layout").offsetHeight - documen
 // https://stackoverflow.com/questions/22893789/d3-color-scale-linear-with-multiple-colors
 // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Gradients
 
+
+
 var range_min = -1.0;
 var middle = 0;
 var range_max = 1.0;
@@ -27,6 +29,13 @@ var nodes, links, adj_list, simulation, svgLinks, svgNodes;
 
 var n = 100, // number of nodes
     m = 400; // number of links
+
+const params = new URLSearchParams(window.location.search);
+const propText = params.get('prop');
+if (propText) {
+  const propTextbox = document.getElementById('prop-text');
+  propTextbox.textContent = `"${propText}"`;
+}
 
 var timeseries = new Array(n);
 var plotOptions = {
