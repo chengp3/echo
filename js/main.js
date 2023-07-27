@@ -66,13 +66,6 @@ $("#screenshot-button").click(download_network);
 
 
 function download_network() {
-  console.log(document.getElementById('sim-svg'))
-
-  domtoimage.toBlob(document.getElementById('sim-svg'))
-    .then(function(blob) {
-        window.saveAs(blob, 'my-node.png');
-    });
-  /*
   const graph = document.querySelector("#demo-graph-layout svg");
 
   const canvas = document.createElement("canvas");
@@ -101,7 +94,6 @@ function download_network() {
   downloadLink.href = dataURL;
   downloadLink.download = "image.png"; 
   downloadLink.click();
-  */
 }
 
 var interval = setInterval(run_Model, time_interval);
