@@ -183,7 +183,7 @@ var textSet = {
         "InfoTitle": "The EchoSim: FAQ",
         "Conservative": "Against",
         "Start": "Start",
-        "Theme": "How echo chambers emerge from social media",
+        "Theme": "How social networks influence our opinions",
         "InfoHowQ": "How does it work?",
         "Scenario04Discription": "When agents are influenced by their friends with similar opinions and can unfriend those with different opinions, the network quickly converges into two or more segregated and homogeneous echo-chambers. The number depends on the tolerance, as long as it is not too high: the smaller the tolerance, the more echo chambers.",
         "Low": "Low",
