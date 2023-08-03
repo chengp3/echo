@@ -14,18 +14,26 @@ var middle = 0;
 var range_max = 1.0;
 const rgbs = ['#ffd63e', '#b47487', '#6812d1']
 var colors = d3.scaleLinear().domain([range_min, middle, range_max]).range(rgbs);
+var first_colors = d3.scaleLinear().domain([0, .5, range_max]).range(rgbs);
 
 var count = 0;
 var max_time = 2000;
 var running = 0;
-var slowest_time = 200;
+var slowest_time = 200; // was 200
 var remove_link = false;
 var time_interval = slowest_time - Number($("#speed").val()),
     post = 0.4;
 
 var tolerance, learning, rewire;
 get_parameters();
+
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 var nodes, links, adj_list, simulation, svgLinks, svgNodes;
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 
 var n = 100, // number of nodes
     m = 400; // number of links
@@ -38,21 +46,6 @@ if (propText) {
 }
 
 var timeseries = new Array(n);
-var plotOptions = {
-    xaxis: {min: 0},
-    yaxis: {min: range_min-0.1, max: range_max+0.1, tickLength: 0,
-      tickFormatter: function(val, axis) {
-        return ((val + 1) * 50) + '%';
-      }
-    },
-    series: {lines: {lineWidth: 0.8}, shadowSize: 0},
-    grid: {
-        hoverable: false,
-        borderWidth: 2,
-        backgroundColor: '#fafafa'
-    }
-};
-var plot = $.plot($("#demo-epicurves"), [], plotOptions);
 
 var svg = d3.select("#demo-graph-layout").append("svg")
     .attr("width", width)
@@ -64,7 +57,16 @@ $("#soflow-t").on("change", update_para);
 $("#soflow-i").on("change", update_para);
 $("#soflow-u").on("change", update_para);
 
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 reset_all();
+
+let plot_scale = d3.scaleLinear().domain([-1, 1]).range([0,1])
+let opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 $(document).ready(start_all);
 
 $("#start-button").click(start_all);
@@ -73,6 +75,47 @@ $("#reset-button").click(reset_all);
 $("#default-button").click(default_para);
 $("#screenshot-button").click(download_network);
 
+
+let curves_svg = d3.select('#demo-epicurves').append("svg")
+  .attr('width', 320)
+  .attr('height', 180),
+    margin = { top: 5, right: 10, bottom: 10, left: 35 },
+    p_width = curves_svg.attr("width") - margin.left - margin.right,
+    p_height = curves_svg.attr("height") - margin.top - margin.bottom;
+
+let x = d3.scaleLinear().rangeRound([0, 270]);
+let y = d3.scaleLinear().rangeRound([p_height - margin.bottom, margin.top]);
+
+let line = d3.line()
+.x(function (d, i) { return x(i); })
+.y(function (d) { return y(d); });
+
+// Create a group element for all the lines
+let g = curves_svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+
+
+curves_svg.append("defs").append("clipPath")
+  .attr("id", "clip")
+  .append("rect")
+  .attr("width", p_width)
+  .attr("height", p_height)
+  .attr("x", 0)
+  .attr("y", 0);
+
+let line_container = g.append('g')
+  .attr('id', 'line-container')
+  .attr("clip-path", "url(#clip)");
+
+x.domain([0, 2000]);
+y.domain([0, 1]);
+
+g.append("g")
+    .attr("transform", "translate(0," + (p_height - margin.bottom) + ")")
+    .call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
+
+g.append("g")
+    .call(d3.axisLeft(y).tickFormat(d3.format('.0%')));
 
 function download_network(e) {
   var svgEl = document.getElementById("sim-svg");
@@ -217,10 +260,26 @@ function run_Model() {
   update_network(t_node, t_link);
   avg_deviation = cal_avg_deviation();
   update_strength(avg_deviation);
-  if (count < max_time) {
-    update_plot(count);
-    $("#demo-chatting").append(chat_msg_one + chat_msg_two + chat_msg_three +"<br/>");
+
+
+  if (opinionHistory[0].length <= 2000){
+    nodes.forEach((node, i) => {
+      opinionHistory[node.name].push(plot_scale(node.opinion));
+    });
+
+    let lines = line_container.selectAll(".line")
+          .data(opinionHistory);
+
+    lines.enter().append("path")
+        .attr("class", "line")
+        .merge(lines)
+        .attr("d", line)
+        .attr("fill", "none")
+        .style("stroke", function (d) { return first_colors(d[0]); });
+
+        $("#demo-chatting").append(chat_msg_one + chat_msg_two + chat_msg_three +"<br/>");
   }
+
   showChatting();
   count += 1;
 }
@@ -307,6 +366,9 @@ function update_network(t_node, t_link) {
   simulation.restart();
 }
 
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 function update_plot(count) {
   for (var i = 0; i < n; i++) {
     timeseries[nodes[i].name].data.push([count, nodes[i].opinion]);
@@ -315,6 +377,9 @@ function update_plot(count) {
   plot.setupGrid();
   plot.draw();
 }
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 
 function dragstarted(d) {
   if (!d3.event.active) simulation.alphaTarget(0.2).restart();
@@ -438,12 +503,30 @@ function reset_all() {
     .links(links);
 
   update_network();
-  update_plot(count);
+  /*******************************************************************/
+  /*******************************************************************/
+  /*******************************************************************/
+  //update_plot(count);
+  /*******************************************************************/
+  /*******************************************************************/
+  /*******************************************************************/
 }
 
 function update_strength(avg_deviation) {
     simulation.force("charge", d3.forceManyBody().strength(-1-avg_deviation*90));
 }
+
+/*
+
+nodes is an array of objects 
+node {
+  name: 0, 1, ... n-1
+  k: # of connections
+  opinion: -1 to 1
+  msg_opinion: ?
+}
+
+*/
 
 function createRandomNet(n, m) {
   var nodes = d3.range(n).map(function (i) {return {name: i}; }),
