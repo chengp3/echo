@@ -53,14 +53,8 @@ $("#soflow-u").on("change", update_para);
 
 reset_all();
 
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
 let plot_scale = d3.scaleLinear().domain([-1, 1]).range([0,1])
 let opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
 
 $(document).ready(start_all);
 
@@ -73,25 +67,25 @@ $("#screenshot-button").click(download_network);
 let curves_width = document.getElementById('demo-epicurves').offsetWidth
 let curves_svg = d3.select('#demo-epicurves').append("svg")
     .attr('width', curves_width)
-    .attr('height', 180);
-let margin = { top: 5, right: 10, bottom: 10, left: 35 },
+    .attr('height', 165)
+    .attr('id', 'plot-svg');
+let margin = { top: 5, right: 70, bottom: 18, left: 60 },
     p_width = curves_svg.attr("width") - margin.left - margin.right,
     p_height = curves_svg.attr("height") - margin.top - margin.bottom;
 
-let x = d3.scaleLinear().rangeRound([0, curves_width - 50]);
+let x = d3.scaleLinear().rangeRound([0, curves_width - margin.right]);
 let y = d3.scaleLinear().rangeRound([p_height - margin.bottom, margin.top]);
 
 let line = d3.line()
 .x(function (d, i) { return x(i); })
 .y(function (d) { return y(d); });
 
-// Create a group element for all the lines
 let g = curves_svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
 curves_svg.append("defs").append("clipPath")
   .attr("id", "clip")
   .append("rect")
-  .attr("width", p_width)
+  .attr("width", p_width + margin.right)
   .attr("height", p_height)
   .attr("x", 0)
   .attr("y", 0);
@@ -100,35 +94,212 @@ let line_container = g.append('g')
   .attr('id', 'line-container')
   .attr("clip-path", "url(#clip)");
 
-x.domain([0, 2000]);
+x.domain([0, 1]);
 y.domain([0, 1]);
 
-g.append("g")
+const x_g = g.append("g")
     .attr("transform", "translate(0," + (p_height - margin.bottom) + ")")
+    .attr("class", "x.axis")
     .call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
+
+const yAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  yAxisLabel.textContent = "Chance of support";
+  yAxisLabel.setAttribute('transform', 'translate(15,132)rotate(270)')
+  yAxisLabel.setAttribute("font-size", "14");
+    yAxisLabel.setAttribute("fill", "black");
+
+document.getElementById('plot-svg').appendChild(yAxisLabel);
+
+const xAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
+  xAxisLabel.textContent = "Time";
+  xAxisLabel.setAttribute('transform', `translate(${curves_width - 45},${160})`)
+  xAxisLabel.setAttribute("font-size", "14");
+  xAxisLabel.setAttribute("fill", "black");
+
+document.getElementById('plot-svg').appendChild(xAxisLabel);
 
 g.append("g")
     .call(d3.axisLeft(y).tickFormat(d3.format('.0%')));
 
 function download_network(e) {
-  var svgEl = document.getElementById("sim-svg");
-  svgEl.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+  let fontsize;
+  
+  function loadElement(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = src; 
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+    });
+  }
 
-  var serializer = new XMLSerializer();
-  var svgStr = serializer.serializeToString(svgEl);
-  var svgBlob = new Blob([svgStr], {type:"image/svg+xml;charset=utf-8"});
-  var svgUrl = URL.createObjectURL(svgBlob);
+  function loadSvgElement(svgElement) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const xml = new XMLSerializer().serializeToString(svgElement);
+      const svg64 = btoa(xml);
+      const b64Start = 'data:image/svg+xml;base64,';
+      const image64 = b64Start + svg64;
+      img.src = image64;
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+    });
+  }
 
-  var img = new Image();
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
+  canvas.width = 750;
+  canvas.height = 840;
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-  img.onload = function() {
-    var canvas = document.createElement("canvas");
-    var ctx = canvas.getContext("2d");
-    canvas.width = img.width;
-    canvas.height = img.height;
-    ctx.fillStyle = "white";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.drawImage(img, 0, 0);
+  function fs(size, weight = '') {
+    fontsize = size;
+    ctx.font = `${size}px Montserrat`;
+    if (weight) ctx.font = weight + ' ' + ctx.font;
+    return
+  }
+  
+  function getLines(ctx, words, maxWidth) {
+    var lines = [];
+    var currentLine = words[0];
+
+    for (var i = 1; i < words.length; i++) {
+        var word = words[i];
+        var width = ctx.measureText(currentLine + " " + word).width;
+        if (width < maxWidth) {
+            currentLine += " " + word;
+        } else {
+            lines.push(currentLine);
+            currentLine = word;
+        }
+    }
+    lines.push(currentLine);
+    return lines;
+  }
+
+  const margin = {left: 40, top: 40, right: 40, bottom: 40}
+
+  ctx.fillStyle = "black";
+  const titlefs = 22;
+  fs(22)
+  const maxTitleWidth = canvas.width - margin.left - margin.right;
+  const titleMargin = 40;
+
+  const title = `Proposal: ${document.getElementById('prop-text').textContent}` 
+  let words = title.split(" ");
+  if (!words) {
+    console.log('Error: No proposal');
+    return
+  }
+  let firstLine = "",
+      i = 0;
+  while (i < words.length) {
+    var word = words[i];
+    var width = ctx.measureText(firstLine + " " + word).width;
+    if (width < maxTitleWidth) {
+        if (i == 0) firstLine = words[0];
+        else firstLine += " " + word;
+        i++;
+    } else {
+      break
+    }
+  }
+  let offsetY = margin.top + titlefs
+  ctx.fillText(firstLine, margin.left, offsetY)
+  let titleWidth = ctx.measureText(firstLine).width;
+  ctx.fillRect(margin.left, 2 + offsetY, titleWidth, 1);
+  words = words.slice(i)
+  const titleLines = getLines(ctx, words, maxTitleWidth - 120)
+
+  if (titleLines[0] !== undefined) {
+    for (let i = 0; i < titleLines.length; i++) {    
+      offsetY += titlefs + 4;
+      ctx.fillText(titleLines[i], margin.left + 120, offsetY)
+      let titleWidth = ctx.measureText(titleLines[i]).width;
+      ctx.fillRect(margin.left + 120, 2 + offsetY, titleWidth, 1);
+    }
+  }
+
+  let simSvg = document.getElementById('sim-svg');
+  let plotSvg = document.getElementById('plot-svg');
+
+  Promise.all([loadElement('img/RdPrBu.svg'), loadSvgElement(simSvg), loadSvgElement(plotSvg)])
+  .then(([legImg, simImg, plotSvg]) => {
+    offsetY += titleMargin;
+    plotOffset = offsetY;
+    let offsetX = margin.left;
+
+    let paramoffsetY = offsetY;
+    let paramoffsetX = offsetX;
+
+    const legmargin = 20;
+    const legtextwidth = 200;
+    const legwidth = legtextwidth + legmargin * 2;
+    const space1 = 10;
+    const legtextfs = 16;
+    const legtextheight = legmargin * 2 + legtextfs * 3;
+    const legheight = legtextheight + legmargin * 2;
+    
+    const paramMargin = 20;
+    const paramtfs = 18;
+    const paramfs = 16;
+    const lineSpace = 6;
+    const textWidth = ctx.measureText('Advanced Parameters').width
+    const textHeight = paramtfs + paramfs * 3 + lineSpace * 3;
+    const paramWidth = textWidth + paramMargin * 2;
+    const paramHeight = textHeight + paramMargin;
+      
+    ctx.strokeStyle = "black";
+    ctx.rect(paramoffsetX, paramoffsetY, legwidth, paramHeight + legheight);
+    ctx.stroke();
+
+    paramoffsetY += paramMargin + paramtfs - 4;
+    fs(paramtfs, 'bold');
+    ctx.fillText(`Advanced Parameters:`, paramoffsetX + paramMargin, paramoffsetY)
+    fs(paramfs)
+    paramoffsetY += (paramtfs + lineSpace);
+    ctx.fillText(`Unfriending: ${document.getElementById('soflow-u').value}`, 20 + paramoffsetX + paramMargin, paramoffsetY)
+    ctx.fillText(`Tolerance: ${document.getElementById('soflow-t').value}`, 20 + paramoffsetX + paramMargin, paramoffsetY + paramfs + lineSpace) 
+    ctx.fillText(`Influenceability: ${document.getElementById('soflow-i').value}`, 20 + paramoffsetX + paramMargin, paramoffsetY + (paramfs + lineSpace) * 2)
+
+    offsetY = paramoffsetY + lineSpace * 2 + paramfs * 3;
+    offsetX = margin.left;
+
+    ctx.strokeStyle = "black";
+    ctx.stroke();
+    
+    let legOffsetY = legtextfs;
+    let legOffsetX = legmargin;
+    
+    fs(legtextfs);
+    ctx.fillText('In favor', offsetX + legOffsetX, offsetY + legOffsetY)
+    ctx.fillText('Against', offsetX + legOffsetX + 200 - ctx.measureText('Against').width, offsetY + legOffsetY)
+    legOffsetY += space1;
+    ctx.drawImage(legImg, offsetX + legOffsetX, offsetY + legOffsetY);
+    legOffsetY += 45
+    ctx.fillText('Less Popular', offsetX + legOffsetX, offsetY + legOffsetY)
+    const radius1 = 3
+    const radius2 = 8
+    ctx.lineWidth = 2;
+    ctx.beginPath()
+    ctx.arc(offsetX + legOffsetX + 200 - radius2, offsetY + legOffsetY - 6, radius1, 0, 2 * Math.PI)
+    ctx.stroke()
+    legOffsetY += 25
+    ctx.fillText('More Popular', offsetX + legOffsetX, offsetY + legOffsetY)
+    ctx.beginPath()
+    ctx.arc(offsetX + legOffsetX + 200 - radius2, offsetY + legOffsetY - 6, radius2, 0, 2 * Math.PI)
+    ctx.stroke()
+
+    offsetX = canvas.width - plotSvg.width - margin.left;
+
+    const plotMargin = 15;
+    ctx.drawImage(plotSvg, offsetX + plotMargin, plotOffset + plotMargin + 25)
+    ctx.fillText('Opinions', offsetX + plotSvg.width / 2, plotOffset + plotMargin + 20);
+    ctx.stroke()
+
+    offsetY += legheight;
+    ctx.drawImage(simImg, 20, offsetY);
 
     var pngDataUrl = canvas.toDataURL("image/png");
     var downloadLink = document.createElement("a");
@@ -137,9 +308,10 @@ function download_network(e) {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-  };
-
-  img.src = svgUrl;
+  })
+  .catch((error) => {
+    console.error('Error loading elements:', error);
+  });
 }
 
 var interval = setInterval(run_Model, time_interval);
@@ -260,6 +432,10 @@ function run_Model() {
       opinionHistory[node.name].push(plot_scale(node.opinion));
     });
 
+    x.domain([0, opinionHistory[0].length - 1]);
+
+    x_g.call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
+
     let lines = line_container.selectAll(".line")
           .data(opinionHistory);
 
@@ -358,21 +534,6 @@ function update_network(t_node, t_link) {
   simulation.alpha(0.1);
   simulation.restart();
 }
-
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
-function update_plot(count) {
-  for (var i = 0; i < n; i++) {
-    timeseries[nodes[i].name].data.push([count, nodes[i].opinion]);
-  }
-  plot.setData(timeseries);
-  plot.setupGrid();
-  plot.draw();
-}
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
 
 function dragstarted(d) {
   if (!d3.event.active) simulation.alphaTarget(0.2).restart();
