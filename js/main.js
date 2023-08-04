@@ -27,13 +27,7 @@ var time_interval = slowest_time - Number($("#speed").val()),
 var tolerance, learning, rewire;
 get_parameters();
 
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
 var nodes, links, adj_list, simulation, svgLinks, svgNodes;
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
 
 var n = 100, // number of nodes
     m = 400; // number of links
@@ -57,16 +51,17 @@ $("#soflow-t").on("change", update_para);
 $("#soflow-i").on("change", update_para);
 $("#soflow-u").on("change", update_para);
 
-/*******************************************************************/
-/*******************************************************************/
-/*******************************************************************/
 reset_all();
 
+/*******************************************************************/
+/*******************************************************************/
+/*******************************************************************/
 let plot_scale = d3.scaleLinear().domain([-1, 1]).range([0,1])
 let opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
 /*******************************************************************/
 /*******************************************************************/
 /*******************************************************************/
+
 $(document).ready(start_all);
 
 $("#start-button").click(start_all);
@@ -75,15 +70,15 @@ $("#reset-button").click(reset_all);
 $("#default-button").click(default_para);
 $("#screenshot-button").click(download_network);
 
-
+let curves_width = document.getElementById('demo-epicurves').offsetWidth
 let curves_svg = d3.select('#demo-epicurves').append("svg")
-  .attr('width', 320)
-  .attr('height', 180),
-    margin = { top: 5, right: 10, bottom: 10, left: 35 },
+    .attr('width', curves_width)
+    .attr('height', 180);
+let margin = { top: 5, right: 10, bottom: 10, left: 35 },
     p_width = curves_svg.attr("width") - margin.left - margin.right,
     p_height = curves_svg.attr("height") - margin.top - margin.bottom;
 
-let x = d3.scaleLinear().rangeRound([0, 270]);
+let x = d3.scaleLinear().rangeRound([0, curves_width - 50]);
 let y = d3.scaleLinear().rangeRound([p_height - margin.bottom, margin.top]);
 
 let line = d3.line()
@@ -92,8 +87,6 @@ let line = d3.line()
 
 // Create a group element for all the lines
 let g = curves_svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-
-
 
 curves_svg.append("defs").append("clipPath")
   .attr("id", "clip")

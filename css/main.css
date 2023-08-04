@@ -282,3 +282,12 @@ div#copyright {
 #info h2 { margin-top: 30px; font-size: 16px; font-weight: bold; }
 #info p, #info ul { margin-top: 10px; font-size: 14px; }
 
+#y-axis-label {
+  left: -3.3rem;
+}
+
+@media only screen and (min-width: 750px) {
+  #y-axis-label{
+    left: -4.3rem;
+  }
+}
