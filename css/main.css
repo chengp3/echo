@@ -38,7 +38,7 @@ div#demo-title {
 }
 
 div#demo-controls {
-  height: 160px;
+  /*height: 160px;*/
   margin: 20px;
   margin-bottom: 0;
   text-align: right;
@@ -88,7 +88,7 @@ select#soflow-l {
 }
 
 div#demo-legend {
-  height: 160px;
+  /*height: 160px;*/
   margin: 20px;
   margin-bottom: 0;
   padding: 20px;
