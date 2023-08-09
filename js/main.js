@@ -7,8 +7,6 @@ var height = document.getElementById("demo-graph-layout").offsetHeight - documen
 // https://stackoverflow.com/questions/22893789/d3-color-scale-linear-with-multiple-colors
 // https://developer.mozilla.org/en-US/docs/Web/SVG/Tutorial/Gradients
 
-
-
 var range_min = -1.0;
 var middle = 0;
 var range_max = 1.0;
@@ -51,6 +49,7 @@ let opinionHistory = []
 
 function initializeOpinionHistory() {
   opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
+  for (let i = 0; i < opinionHistory.length; i++) opinionHistory[i][1] = opinionHistory[i][0]
 }
 
 let line = d3.line()
@@ -62,14 +61,20 @@ let curves_svg = d3.select('#demo-epicurves').append("svg")
     .attr('width', curves_width)
     .attr('height', 165)
     .attr('id', 'plot-svg');
-let margin = { top: 5, right: 70, bottom: 18, left: 60 },
+let margin = { top: 5, right: 80, bottom: 18, left: 60 },
     p_width = curves_svg.attr("width") - margin.left - margin.right,
     p_height = curves_svg.attr("height") - margin.top - margin.bottom;
 
 let x = d3.scaleLinear().rangeRound([0, curves_width - margin.right]);
 let y = d3.scaleLinear().rangeRound([p_height - margin.bottom, margin.top]);
+x.domain([0, 1]);
+y.domain([0, 1]);
 
 let g = curves_svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+const x_g = g.append("g")
+    .attr("transform", "translate(0," + (p_height - margin.bottom) + ")")
+    .attr("class", "x.axis")
+    .call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
 
 curves_svg.append("defs").append("clipPath")
   .attr("id", "clip")
@@ -88,7 +93,7 @@ $("#soflow-t").on("change", update_para);
 $("#soflow-i").on("change", update_para);
 $("#soflow-u").on("change", update_para);
 
-reset_all();
+initialize()
 $(document).ready(start_all);
 
 $("#start-button").click(start_all);
@@ -97,19 +102,50 @@ $("#reset-button").click(reset_all);
 $("#default-button").click(default_para);
 $("#screenshot-button").click(download_network);
 
-initializeOpinionHistory();
+function initialize() {
+  count = 0;
+  $("#demo-chatting").html("");
+  showChatting();
+  //creates a random graph on n nodes and m links
+  [nodes, links, adj_list] = createRandomNet(n, m);
+  for (var i = 0; i < n; i++) {
+    timeseries[i] = [];
+    timeseries[i].data = [];
+    timeseries[i].color = colors(nodes[i].opinion);
+  }
 
+  simulation = d3.forceSimulation()
+    .force("link", d3.forceLink().id(function(d) { return d.index; }).distance(10).strength(0.1))
+    .force("charge", d3.forceManyBody().strength(-73))
+    .force("center", d3.forceCenter(width / 2, height / 2));
+    // .force("y", d3.forceY(width))
+    // .force("x", d3.forceX(height));
 
+  simulation
+    .nodes(nodes)
+    .on("tick", ticked);
 
+  simulation.force("link")
+    .links(links);
 
+  update_network();
 
-x.domain([0, 1]);
-y.domain([0, 1]);
+  initializeOpinionHistory();
+  opinionHistory = nodes.map(node => [plot_scale(node.opinion), plot_scale(node.opinion)]);
+  let lines = line_container.selectAll(".line").data(opinionHistory);
 
-const x_g = g.append("g")
-    .attr("transform", "translate(0," + (p_height - margin.bottom) + ")")
-    .attr("class", "x.axis")
-    .call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
+  lines
+    .enter()
+    .append("path")
+    .attr("class", "line")
+    .merge(lines)
+    .attr("d", line)
+    .attr("fill", "none")
+    .style("stroke", function (d) { return first_colors(d[0]); });
+
+  x.domain([0,1]);
+  x_g.call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
+}
 
 const yAxisLabel = document.createElementNS("http://www.w3.org/2000/svg", "text");
   yAxisLabel.textContent = "Chance of support";
@@ -324,7 +360,6 @@ function download_network(e) {
 }
 
 var interval = setInterval(run_Model, time_interval);
-
 interval;
 
 function run_Model() {
@@ -666,12 +701,13 @@ function reset_all() {
     .links(links);
 
   update_network();
-  /*******************************************************************/
-  /*******************************************************************/
-  /*******************************************************************/
+
   initializeOpinionHistory();
-  opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
+  opinionHistory = nodes.map(node => [plot_scale(node.opinion), plot_scale(node.opinion)]);
   let lines = line_container.selectAll(".line").data(opinionHistory);
+
+  x.domain([0,1]);
+  x_g.call(d3.axisBottom(x).ticks(Math.min(Math.max(p_width / 50, 4), 5)));
 
   lines
     .enter()
@@ -682,12 +718,7 @@ function reset_all() {
     .attr("fill", "none")
     .style("stroke", function (d) { return first_colors(d[0]); });
 
-  // If you want to remove old lines, you can do so with the exit() method
   lines.exit().remove();
-
-  /*******************************************************************/
-  /*******************************************************************/
-  /*******************************************************************/
 }
 
 function update_strength(avg_deviation) {
