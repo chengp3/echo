@@ -175,7 +175,7 @@ var textSet = {
     },
     "english": {
         "PostMessage": "User [t_node.name] posts a new message.",
-        "InfluenceDiscription": "An agent’s opinion is updated to become more similar, on average, to those reflected in concordant messages from neighbors. The influence controls how fast this happens.",
+        "InfluenceDiscription": "Controls how fast an individual changes their own opinion to reflect those of neighbors.",
         "InfoRepresentQ": "What does the network represent?",
         "InfoInstructionsQ": "What do I do?",
         "Title": "EchoSim",
@@ -197,7 +197,7 @@ var textSet = {
         "ReadMessage": "User [t_node.name] reads [concordant_nodes.length] messages.",
         "Never": "Never",
         "Weak": "Weak",
-        "InfoInstructionsA": "Initially, users have diverse random opinions and are connected in a random network. Try different values of the parameters (or pick one of the scenarios), start the simulation, and observe what happens. How do user opinions and the network structure change?",
+        "InfoInstructionsA": "Initially, individuals have diverse random opinions and are connected in a random network. Try different values of the parameters, start the simulation, and observe what happens. How do user opinions and the network structure change?",
         "Reset": "Reset",
         "Strong": "Strong",
         "Unfriending": "Unfriending",
@@ -211,9 +211,9 @@ var textSet = {
         "Scenario05Discription": "With high tolerance, unfriending has small effect. Influence causes the system to quickly converge to a single group with homogeneous opinions.",
         "Time": "Time",
         "Scenario03Discription": "Without influence, opinions do not change. However, the unfriending process allows the agents to slowly sort themselves into a few homogeneous groups.",
-        "GraphDiscription": "This plot tracks how the agent opinions change over time. Convergence to a few groups of homogeneous opinions indicates an echo-chamber effect.",
-        "UnfriendingDiscription": "This parameter regulates how often an agent will unfriend a neighbor who posts a discordant message, and replace it with a randomly selected new friend.",
-        "InfoRepresentA": "Each node in the network represents a user; its size represents its popularity (number of friends) and its color represents its political opinion. Friend connections are assumed to be mutual.",
+        "GraphDiscription": "This plot tracks how individual opinions change over time.",
+        "UnfriendingDiscription": "Controls how often an individual will unfriend a neighbor who posts a message that doesn’t agree with their own opinion, and then replace that person with a random new friend.",
+        "InfoRepresentA": "Each circle in the network represents an individual; its size represents the individual's popularity (number of friends) and its color represents its opinion about a particular topic or proposal. Friend connections are assumed to be mutual.",
         "AdvancedParameters": "Advanced Parameters",
         "Often": "Often",
         "Progressive": "In favor",
@@ -223,12 +223,12 @@ var textSet = {
         "BecomeMoreConservative": "User [t_node.name] becomes a bit less in favor.",
         "BecomeMoreProgressice": "User [t_node.name] becomes a bit more in favor.",
         "High": "High",
-        "ToleranceDiscription": "Tolerance defines how agents deal with different opinions. Messages reflecting opinions within this range from an agent’s own opinion are considered as concordant, otherwise as discordant. Concordant messages can influence an agent’s own opinion. Furthermore, an agent will occasionally unfriend neighbors who post discordant messages.",
-        "InfoHowA": "Users do four things: (1) they read messages posted/re-posted by their\nfriends; (2) they change their opinion a bit (based on the influence\nparameter) according to concordant messages (based on the tolerance\nparameter); (3) once in a while (based on the unfriending parameter)\nthey replace a friend who posts messages sufficiently different from\ntheir own opinion (based on the tolerance parameter) with a random\nfriend; and (4) they either post a new message reflecting their\nopinion, or re-post a concordant message (based on the tolerance\nparameter) from a random friend.",
+        "ToleranceDiscription": "Describes the likelihood of whether an individual accepts someone else’s opinion as within the range of agreement with their own opinion.",
+        "InfoHowA": "Individuals do four things: (1) they read messages posted/re-posted by their\nfriends; (2) they change their opinion a bit (based on the influence\nparameter) according to messages that are concordant, or agree with their own opinions (based on the tolerance\nparameter); (3) once in a while (based on the unfriending parameter)\nthey replace a friend who posts messages sufficiently different from\ntheir own opinion (based on the tolerance parameter) with a random\nfriend; and (4) they either post a new message reflecting their\nopinion, or re-post a concordant message (based on the tolerance\nparameter) from a random friend.",
         "BecomeLessConservative": "User [t_node.name] becomes a bit less in favor.",
         "ParameterSetting": "Parameter Setting",
         "Speed": "Speed",
         "LessPopular": "Less Popular",
-        "InfoIntroA": "EchoSim is a model simulation that demonstrates how two basic mechanisms of social media --- influencing friend opinions and unfriending people with different opinions --- can lead to polarized and segregated social networks. For more details check out our <a href='https://link.springer.com/article/10.1007/s42001-020-00084-7'>paper</a>."
+        "InfoIntroA": "EchoSim is a model simulation that demonstrates how two basic mechanisms of social media --- influencing friend opinions and unfriending people with different opinions --- can lead to diverging and segregated social networks. For more details check out this <a href='https://link.springer.com/article/10.1007/s42001-020-00084-7'>paper</a>."
     }
 }
