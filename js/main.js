@@ -46,23 +46,16 @@ var svg = d3.select("#demo-graph-layout").append("svg")
     .attr("height", height)
     .attr("id", 'sim-svg');
 
-$("#speed").on("change", update_speed);
-$("#soflow-t").on("change", update_para);
-$("#soflow-i").on("change", update_para);
-$("#soflow-u").on("change", update_para);
-
-reset_all();
-
 let plot_scale = d3.scaleLinear().domain([-1, 1]).range([0,1])
-let opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
+let opinionHistory = []
 
-$(document).ready(start_all);
+function initializeOpinionHistory() {
+  opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
+}
 
-$("#start-button").click(start_all);
-$("#stop-button").click(stop_all);
-$("#reset-button").click(reset_all);
-$("#default-button").click(default_para);
-$("#screenshot-button").click(download_network);
+let line = d3.line()
+.x(function (d, i) { return x(i); })
+.y(function (d) { return y(d); });
 
 let curves_width = document.getElementById('demo-epicurves').offsetWidth
 let curves_svg = d3.select('#demo-epicurves').append("svg")
@@ -75,10 +68,6 @@ let margin = { top: 5, right: 70, bottom: 18, left: 60 },
 
 let x = d3.scaleLinear().rangeRound([0, curves_width - margin.right]);
 let y = d3.scaleLinear().rangeRound([p_height - margin.bottom, margin.top]);
-
-let line = d3.line()
-.x(function (d, i) { return x(i); })
-.y(function (d) { return y(d); });
 
 let g = curves_svg.append("g").attr("transform", "translate(" + margin.left + "," + margin.top + ")")
 
@@ -93,6 +82,26 @@ curves_svg.append("defs").append("clipPath")
 let line_container = g.append('g')
   .attr('id', 'line-container')
   .attr("clip-path", "url(#clip)");
+
+$("#speed").on("change", update_speed);
+$("#soflow-t").on("change", update_para);
+$("#soflow-i").on("change", update_para);
+$("#soflow-u").on("change", update_para);
+
+reset_all();
+$(document).ready(start_all);
+
+$("#start-button").click(start_all);
+$("#stop-button").click(stop_all);
+$("#reset-button").click(reset_all);
+$("#default-button").click(default_para);
+$("#screenshot-button").click(download_network);
+
+initializeOpinionHistory();
+
+
+
+
 
 x.domain([0, 1]);
 y.domain([0, 1]);
@@ -660,7 +669,22 @@ function reset_all() {
   /*******************************************************************/
   /*******************************************************************/
   /*******************************************************************/
-  //update_plot(count);
+  initializeOpinionHistory();
+  opinionHistory = nodes.map(node => [plot_scale(node.opinion)]);
+  let lines = line_container.selectAll(".line").data(opinionHistory);
+
+  lines
+    .enter()
+    .append("path")
+    .attr("class", "line")
+    .merge(lines)
+    .attr("d", line)
+    .attr("fill", "none")
+    .style("stroke", function (d) { return first_colors(d[0]); });
+
+  // If you want to remove old lines, you can do so with the exit() method
+  lines.exit().remove();
+
   /*******************************************************************/
   /*******************************************************************/
   /*******************************************************************/
