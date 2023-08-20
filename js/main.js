@@ -304,9 +304,12 @@ function download_network(e) {
     ctx.fillText(`Advanced Parameters:`, paramoffsetX + paramMargin, paramoffsetY)
     fs(paramfs)
     paramoffsetY += (paramtfs + lineSpace);
-    ctx.fillText(`Unfriending: ${document.getElementById('soflow-u').value}`, 20 + paramoffsetX + paramMargin, paramoffsetY)
-    ctx.fillText(`Tolerance: ${document.getElementById('soflow-t').value}`, 20 + paramoffsetX + paramMargin, paramoffsetY + paramfs + lineSpace) 
-    ctx.fillText(`Influenceability: ${document.getElementById('soflow-i').value}`, 20 + paramoffsetX + paramMargin, paramoffsetY + (paramfs + lineSpace) * 2)
+    const unf = document.getElementById('soflow-u');
+    const tol = document.getElementById('soflow-t')
+    const inf = document.getElementById('soflow-i')
+    ctx.fillText(`Unfriending: ${unf.options[unf.selectedIndex].text}`, 20 + paramoffsetX + paramMargin, paramoffsetY)
+    ctx.fillText(`Tolerance: ${tol.options[tol.selectedIndex].text}`, 20 + paramoffsetX + paramMargin, paramoffsetY + paramfs + lineSpace) 
+    ctx.fillText(`Influenceability: ${inf.options[inf.selectedIndex].text}`, 20 + paramoffsetX + paramMargin, paramoffsetY + (paramfs + lineSpace) * 2)
 
     offsetY = paramoffsetY + lineSpace * 2 + paramfs * 3;
     offsetX = margin.left;
