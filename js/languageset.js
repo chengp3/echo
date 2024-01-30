@@ -197,7 +197,7 @@ var textSet = {
         "ReadMessage": "User [t_node.name] reads [concordant_nodes.length] messages.",
         "Never": "Never",
         "Weak": "Weak",
-        "InfoInstructionsA": "Initially, individuals have diverse random opinions and are connected in a random network. Try different values of the parameters, start the simulation, and observe what happens. How do user opinions and the network structure change?",
+        "InfoInstructionsA": "Initially, individuals have diverse random opinions and are connected in a random network. Try different parameter values (for example, guess which parameters most lead to echo chamber formation...), start the simulation, and watch the network evolve.",
         "Reset": "Reset",
         "Strong": "Strong",
         "Unfriending": "Unfriending",
